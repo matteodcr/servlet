@@ -98,7 +98,7 @@ public class HttpServer {
 			try {
 				var ricmlet = getInstanceByURL(ressname);
 				if (ricmlet != null) {
-					return new HttpDynamicRequest(this, method, ressname, br, ricmlet);
+					return new HttpRicmletRequestImpl(this, method, ressname, br, ricmlet);
 				}
 			} catch (ReflectiveOperationException e) {
 				e.printStackTrace();

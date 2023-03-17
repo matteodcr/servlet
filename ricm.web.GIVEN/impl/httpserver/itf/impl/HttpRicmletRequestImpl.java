@@ -11,11 +11,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class HttpDynamicRequest extends HttpRicmletRequest {
+public class HttpRicmletRequestImpl extends HttpRicmletRequest {
     private final HttpRicmlet ricmlet;
     HashMap<String, String> queryParameters = new HashMap<>();
 
-    public HttpDynamicRequest(HttpServer hs, String method, String ressname, BufferedReader br, HttpRicmlet ricmlet) throws IOException {
+    public HttpRicmletRequestImpl(HttpServer hs, String method, String ressname, BufferedReader br, HttpRicmlet ricmlet) throws IOException {
         super(hs, method, ressname, br);
         this.ricmlet = ricmlet;
         List<String> decompose = Arrays.asList(ressname.split("\\?"));
