@@ -34,12 +34,21 @@ public class HttpRicmletResponseImpl implements HttpRicmletResponse {
 	}
 
 	@Override
+	public void setHeader(String name, String value) throws IOException {
+		base.setHeader(name, value);
+	}
+
+	@Override
 	public PrintStream beginBody() throws IOException {
 		return base.beginBody();
 	}
 
 	@Override
-	public void setCookie(String name, String value) {
-		throw new UnsupportedOperationException("unimplemented"); // TODO
+	public void setCookie(String name, String value) throws IOException {
+		if (value != null) {
+			setHeader("Set-Cookie", "%s=%s".formatted(name, value));
+		} else {
+			setHeader("Set-Cookie", "%s=; Max-Age=0".formatted(name));
+		}
 	}
 }

@@ -2,6 +2,8 @@ package httpserver.itf.impl;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import httpserver.itf.HttpRequest;
 import httpserver.itf.HttpResponse;
@@ -13,6 +15,7 @@ class HttpResponseImpl implements HttpResponse {
 	protected HttpServer m_hs;
 	protected PrintStream m_ps;
 	protected HttpRequest m_req;
+	protected Map<String, String> headers = new HashMap<>();
 
 	protected HttpResponseImpl(HttpServer hs, HttpRequest req, PrintStream ps) {
 		m_hs = hs;
@@ -45,12 +48,21 @@ class HttpResponseImpl implements HttpResponse {
 		m_ps.println("Content-type: " + type);
 	}
 
+	@Override
+	public void setHeader(String name, String value) {
+		headers.put(name, value);
+	}
+
 	/*
 	 * Insert an empty line to the response
 	 * and return the printstream to send the reply
 	 * @see httpserver.itf.HttpResponse#beginBody()
 	 */
 	public PrintStream beginBody() {
+		for (var header : headers.entrySet()) {
+			m_ps.printf("%s: %s\r\n", header.getKey(), header.getValue());
+		}
+
 		m_ps.println(); 
 		return m_ps;
 	}

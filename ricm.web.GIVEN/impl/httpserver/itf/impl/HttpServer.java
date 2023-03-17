@@ -94,11 +94,20 @@ public class HttpServer {
 		String method = parseline.nextToken().toUpperCase();
 		String ressname = parseline.nextToken();
 
+		var headers = new HashMap<String, String>();
+
+		String line;
+		do {
+			line = br.readLine();
+			var headerEntry = line.split(": ", 2);
+			if (headerEntry.length == 2) headers.put(headerEntry[0], headerEntry[1]);
+		} while (line.length() > 0);
+
 		if (method.equals("GET")) {
 			try {
 				var ricmlet = getInstanceByURL(ressname);
 				if (ricmlet != null) {
-					return new HttpRicmletRequestImpl(this, method, ressname, br, ricmlet);
+					return new HttpRicmletRequestImpl(this, method, ressname, headers, br, ricmlet);
 				}
 			} catch (ReflectiveOperationException e) {
 				e.printStackTrace();
