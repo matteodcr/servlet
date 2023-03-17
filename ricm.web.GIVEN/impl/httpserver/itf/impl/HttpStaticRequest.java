@@ -1,7 +1,9 @@
 package httpserver.itf.impl;
 
+import java.io.File;
 import java.io.IOException;
-
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 
 import httpserver.itf.HttpRequest;
 import httpserver.itf.HttpResponse;
@@ -17,7 +19,28 @@ public class HttpStaticRequest extends HttpRequest {
 	}
 	
 	public void process(HttpResponse resp) throws Exception {
-	// TO COMPLETE
+		var path = new File(m_hs.getFolder(), m_ressname);
+		var contentType = HttpRequest.getContentType(m_ressname);
+
+		try {
+			if (path.isDirectory()) {
+				path = new File(path, DEFAULT_FILE);
+				contentType = HttpRequest.getContentType(DEFAULT_FILE);
+			}
+
+			var bytes = Files.readAllBytes(path.toPath());
+			resp.setReplyOk();
+			resp.setContentType(contentType);
+			resp.setContentLength((int) path.length());
+			try (var body = resp.beginBody()) {
+				body.write(bytes);
+			}
+		} catch (IOException e) {
+			resp.setReplyError(e instanceof NoSuchFileException ? 404 : 500, e.getMessage());
+			if (!(e instanceof NoSuchFileException)) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
