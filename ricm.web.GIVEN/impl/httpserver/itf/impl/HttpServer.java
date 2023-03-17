@@ -15,8 +15,8 @@ import httpserver.itf.HttpRicmlet;
 
 
 /**
- * Basic HTTP Server Implementation 
- * 
+ * Basic HTTP Server Implementation
+ *
  * Only manages static requests
  * The url for a static ressource is of the form: "http//host:port/<path>/<ressource name>"
  * For example, try accessing the following urls from your brower:
@@ -32,7 +32,7 @@ public class HttpServer {
 
 	protected HttpServer(int port, String folderName) {
 		m_port = port;
-		if (!folderName.endsWith(File.separator)) 
+		if (!folderName.endsWith(File.separator))
 			folderName = folderName + File.separator;
 		m_folder = new File(folderName);
 		try {
@@ -43,15 +43,15 @@ public class HttpServer {
 			System.exit(1);
 		}
 	}
-	
+
 	public File getFolder() {
 		return m_folder;
 	}
-	
-	
+
+
 
 	public HttpRicmlet getInstance(String clsname)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, MalformedURLException, 
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, MalformedURLException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		throw new Error("No Support for Ricmlets");
 	}
@@ -64,14 +64,14 @@ public class HttpServer {
 	 */
 	public HttpRequest getRequest(BufferedReader br) throws IOException {
 		HttpRequest request = null;
-		
+
 		String startline = br.readLine();
 		StringTokenizer parseline = new StringTokenizer(startline);
-		String method = parseline.nextToken().toUpperCase(); 
+		String method = parseline.nextToken().toUpperCase();
 		String ressname = parseline.nextToken();
 		if (method.equals("GET")) {
 			request = new HttpStaticRequest(this, method, ressname);
-		} else 
+		} else
 			request = new UnknownRequest(this, method, ressname);
 		return request;
 	}
@@ -100,8 +100,6 @@ public class HttpServer {
 		}
 	}
 
-	
-	
 	public static void main(String[] args) {
 		int port = 0;
 		if (args.length != 2) {

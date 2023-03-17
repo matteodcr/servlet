@@ -1,17 +1,18 @@
 package httpserver.itf;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import httpserver.itf.impl.HttpServer;
 
-/* 
+/*
  * This class is used to build an object representing an HTTP request
  */
 public abstract class HttpRequest {
-
-	protected HttpServer m_hs; 
+	protected HttpServer m_hs;
 	protected String m_method;
 	protected String m_ressname;
+	HashMap<String, String> queryParameters;
 
 	public HttpRequest(HttpServer hs, String method, String ressname) throws IOException {
 		m_hs = hs;
@@ -45,11 +46,11 @@ public abstract class HttpRequest {
 		else if (name.endsWith(".pdf"))  return "application/pdf";
 		else return "text/plain";
 	}
-	
+
 	/*
 	 * Process the current request, delivering the response on the given HttpResponse object
 	 */
 	public abstract void process(HttpResponse resp) throws Exception;
-	
+
 
 }
