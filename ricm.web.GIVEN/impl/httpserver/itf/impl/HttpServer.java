@@ -1,12 +1,15 @@
 package httpserver.itf.impl;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import httpserver.itf.HttpRequest;
@@ -26,9 +29,11 @@ import httpserver.itf.HttpRicmlet;
  */
 public class HttpServer {
 
+	private static final String RICMLET_URL_BASE = "/ricmlets/";
 	private int m_port;
 	private File m_folder;  // default folder for accessing static resources (files)
 	private ServerSocket m_ssoc;
+	private final Map<String, HttpRicmlet> ricmlets = new HashMap<>();
 
 	protected HttpServer(int port, String folderName) {
 		m_port = port;
@@ -50,30 +55,59 @@ public class HttpServer {
 
 
 
-	public HttpRicmlet getInstance(String clsname)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, MalformedURLException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		throw new Error("No Support for Ricmlets");
+	public HttpRicmlet getInstance(String clsname) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		var ricmlet = ricmlets.get(clsname);
+
+		if (ricmlet == null) {
+			Class<?> ricmletClass = getClass().getClassLoader().loadClass(clsname);
+			Constructor<?> constructor = ricmletClass.getDeclaredConstructor();
+			ricmlet = (HttpRicmlet) constructor.newInstance();
+			ricmlets.put(clsname, ricmlet);
+		}
+
+		return ricmlet;
 	}
 
 
+	public HttpRicmlet getInstanceByURL(String url) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+		if (url.startsWith(RICMLET_URL_BASE)) {
+			var path = url.substring(RICMLET_URL_BASE.length());
+			var inter = path.indexOf('?');
+			if (inter > -1) {
+				path = path.substring(0, inter);
+			}
+
+			var pkg = path.replace('/', '.');
+			return getInstance(pkg);
+		} else {
+			return null;
+		}
+	}
 
 
 	/*
 	 * Reads a request on the given input stream and returns the corresponding HttpRequest object
 	 */
 	public HttpRequest getRequest(BufferedReader br) throws IOException {
-		HttpRequest request = null;
-
 		String startline = br.readLine();
 		StringTokenizer parseline = new StringTokenizer(startline);
 		String method = parseline.nextToken().toUpperCase();
 		String ressname = parseline.nextToken();
+
 		if (method.equals("GET")) {
-			request = new HttpStaticRequest(this, method, ressname);
+			try {
+				var ricmlet = getInstanceByURL(ressname);
+				if (ricmlet != null) {
+					return new HttpDynamicRequest(this, method, ressname, br, ricmlet);
+				}
+			} catch (ReflectiveOperationException e) {
+				e.printStackTrace();
+				return new UnknownRequest(this, method, ressname);
+			}
+
+			return new HttpStaticRequest(this, method, ressname);
 		} else
-			request = new UnknownRequest(this, method, ressname);
-		return request;
+			return new UnknownRequest(this, method, ressname);
 	}
 
 
