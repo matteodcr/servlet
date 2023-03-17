@@ -31,6 +31,8 @@ public interface HttpResponse {
 	 * @param type  the content type ("HTML", "JPG", ..)
 	 */
 	public void setContentType(String type) throws IOException;
+
+	public void setHeader(String name, String value) throws IOException;
 	
 	/*
 	 * Insert an empty line on the response output stream 

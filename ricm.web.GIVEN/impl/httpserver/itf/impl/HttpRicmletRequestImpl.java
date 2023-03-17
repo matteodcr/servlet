@@ -1,22 +1,28 @@
 package httpserver.itf.impl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import httpserver.itf.HttpResponse;
 import httpserver.itf.HttpRicmlet;
 import httpserver.itf.HttpRicmletRequest;
 import httpserver.itf.HttpSession;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
 public class HttpRicmletRequestImpl extends HttpRicmletRequest {
+    private final Map<String, String> headers;
     private final HttpRicmlet ricmlet;
     HashMap<String, String> queryParameters = new HashMap<>();
 
-    public HttpRicmletRequestImpl(HttpServer hs, String method, String ressname, BufferedReader br, HttpRicmlet ricmlet) throws IOException {
+    private Map<String, String> cookies = null;
+
+    public HttpRicmletRequestImpl(HttpServer hs, String method, String ressname, HashMap<String, String> headers, BufferedReader br, HttpRicmlet ricmlet) throws IOException {
         super(hs, method, ressname, br);
+        this.headers = headers;
         this.ricmlet = ricmlet;
         List<String> decompose = Arrays.asList(ressname.split("\\?"));
         if (decompose.size() == 2){
@@ -46,8 +52,24 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
         return queryParameters.get(name);
     }
 
+    /**
+     * Lazy-inits and returns cookies
+     */
+    private Map<String, String> getCookies() {
+        if (cookies == null) {
+            cookies = new HashMap<>();
+            for (var cookie : headers.get("Cookie").split("; ")) {
+                var entry = cookie.split("=", 2);
+                if (entry.length == 2) cookies.put(entry[0], entry[1]);
+            }
+            cookies = Collections.unmodifiableMap(cookies);
+        }
+
+        return cookies;
+    }
+
     @Override
     public String getCookie(String name) {
-        return null;
+        return getCookies().get(name);
     }
 }
