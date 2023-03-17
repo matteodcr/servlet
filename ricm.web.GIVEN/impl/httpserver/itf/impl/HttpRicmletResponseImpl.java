@@ -7,9 +7,11 @@ import httpserver.itf.HttpResponse;
 import httpserver.itf.HttpRicmletResponse;
 
 public class HttpRicmletResponseImpl implements HttpRicmletResponse {
+	private final HttpRicmletRequestImpl req;
 	private final HttpResponse base;
 
-	public HttpRicmletResponseImpl(HttpResponse base) {
+	public HttpRicmletResponseImpl(HttpRicmletRequestImpl req, HttpResponse base) {
+		this.req = req;
 		this.base = base;
 	}
 
@@ -40,6 +42,10 @@ public class HttpRicmletResponseImpl implements HttpRicmletResponse {
 
 	@Override
 	public PrintStream beginBody() throws IOException {
+		if (req.sessionId != null) {
+			setCookie("session-id", req.sessionId);
+		}
+
 		return base.beginBody();
 	}
 

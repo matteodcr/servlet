@@ -15,7 +15,7 @@ import java.util.StringTokenizer;
 import httpserver.itf.HttpRequest;
 import httpserver.itf.HttpResponse;
 import httpserver.itf.HttpRicmlet;
-
+import httpserver.itf.HttpSessionManager;
 
 /**
  * Basic HTTP Server Implementation
@@ -34,6 +34,7 @@ public class HttpServer {
 	private File m_folder;  // default folder for accessing static resources (files)
 	private ServerSocket m_ssoc;
 	private final Map<String, HttpRicmlet> ricmlets = new HashMap<>();
+	private final HttpSessionManager sessionManager = new HttpSessionManagerImpl(1000);
 
 	protected HttpServer(int port, String folderName) {
 		m_port = port;
@@ -155,5 +156,8 @@ public class HttpServer {
 		}
 	}
 
+	public HttpSessionManager getSessions() {
+		return sessionManager;
+	}
 }
 

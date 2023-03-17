@@ -19,6 +19,7 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
     HashMap<String, String> queryParameters = new HashMap<>();
 
     private Map<String, String> cookies = null;
+    String sessionId = null;
 
     public HttpRicmletRequestImpl(HttpServer hs, String method, String ressname, HashMap<String, String> headers, BufferedReader br, HttpRicmlet ricmlet) throws IOException {
         super(hs, method, ressname, br);
@@ -39,12 +40,15 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
 
     @Override
     public void process(HttpResponse resp) throws Exception {
-        ricmlet.doGet(this, new HttpRicmletResponseImpl(resp));
+        ricmlet.doGet(this, new HttpRicmletResponseImpl(this, resp));
     }
 
     @Override
     public HttpSession getSession() {
-        return null;
+        var sessionId = getCookie("session-id");
+        var session = m_hs.getSessions().getSession(sessionId);
+        this.sessionId = session.getId();
+        return session;
     }
 
     @Override
@@ -58,9 +62,12 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
     private Map<String, String> getCookies() {
         if (cookies == null) {
             cookies = new HashMap<>();
-            for (var cookie : headers.get("Cookie").split("; ")) {
-                var entry = cookie.split("=", 2);
-                if (entry.length == 2) cookies.put(entry[0], entry[1]);
+            var cookieHeader = headers.get("Cookie");
+            if (cookieHeader != null) {
+                for (var cookie : cookieHeader.split("; ")) {
+                    var entry = cookie.split("=", 2);
+                    if (entry.length == 2) cookies.put(entry[0], entry[1]);
+                }
             }
             cookies = Collections.unmodifiableMap(cookies);
         }
