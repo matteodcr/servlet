@@ -1,16 +1,16 @@
 package httpserver.itf.impl;
 
+import httpserver.itf.HttpSession;
+
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
-
-import httpserver.itf.HttpSession;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpSessionImpl implements HttpSession {
 	private final String id;
-	private final Map<Object, Object> kv = new HashMap<>();
-	private Instant lastUpdate;
+	private final Map<Object, Object> kv = new ConcurrentHashMap<>();
+	private volatile Instant lastUpdate;
 
 	public HttpSessionImpl(String id) {
 		this.id = id;

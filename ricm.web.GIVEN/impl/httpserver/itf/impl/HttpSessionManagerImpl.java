@@ -1,15 +1,15 @@
 package httpserver.itf.impl;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import httpserver.itf.HttpSession;
 import httpserver.itf.HttpSessionManager;
 
 public class HttpSessionManagerImpl implements HttpSessionManager {
 	private final int expirationDelay;
-	private final Map<String, HttpSessionImpl> sessions = new HashMap<>();
+	private final Map<String, HttpSessionImpl> sessions = new ConcurrentHashMap<>();
 
 	public HttpSessionManagerImpl(int expirationDelay) {
 		this.expirationDelay = expirationDelay;

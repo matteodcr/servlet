@@ -5,12 +5,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import httpserver.itf.HttpRequest;
 import httpserver.itf.HttpResponse;
@@ -33,7 +33,7 @@ public class HttpServer {
 	private int m_port;
 	private File m_folder;  // default folder for accessing static resources (files)
 	private ServerSocket m_ssoc;
-	private final Map<String, HttpRicmlet> ricmlets = new HashMap<>();
+	private final Map<String, HttpRicmlet> ricmlets = new ConcurrentHashMap<>();
 	private final HttpSessionManager sessionManager = new HttpSessionManagerImpl(1000);
 
 	protected HttpServer(int port, String folderName) {
@@ -55,22 +55,27 @@ public class HttpServer {
 	}
 
 
-
-	public HttpRicmlet getInstance(String clsname) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		var ricmlet = ricmlets.get(clsname);
-
-		if (ricmlet == null) {
-			Class<?> ricmletClass = getClass().getClassLoader().loadClass(clsname);
-			Constructor<?> constructor = ricmletClass.getDeclaredConstructor();
-			ricmlet = (HttpRicmlet) constructor.newInstance();
-			ricmlets.put(clsname, ricmlet);
+	// Cette méthode devrait être thread safe
+	public HttpRicmlet getInstance(String clsname) throws ReflectiveOperationException, IllegalArgumentException, SecurityException {
+		try {
+			// Atomique sur une ConcurrentHashMap
+			return ricmlets.computeIfAbsent(clsname, (c) -> {
+				try {
+					Class<?> ricmletClass = getClass().getClassLoader().loadClass(c);
+					Constructor<?> constructor = ricmletClass.getDeclaredConstructor();
+					return (HttpRicmlet) constructor.newInstance();
+				} catch (ReflectiveOperationException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		} catch (RuntimeException e) {
+			if (e.getCause() instanceof ReflectiveOperationException cause) throw cause;
+			else throw e;
 		}
-
-		return ricmlet;
 	}
 
 
-	public HttpRicmlet getInstanceByURL(String url) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+	public HttpRicmlet getInstanceByURL(String url) throws ReflectiveOperationException {
 		if (url.startsWith(RICMLET_URL_BASE)) {
 			var path = url.substring(RICMLET_URL_BASE.length());
 			var inter = path.indexOf('?');
