@@ -20,7 +20,7 @@ public class HttpWorker extends Thread {
 		m_hs = hs;
 		m_soc = soc;
 	}
-	
+
 	public void run() {
 		try {
 			// get the input and output streams associated to the socket
@@ -30,17 +30,18 @@ public class HttpWorker extends Thread {
 			// build HttpRequest and HttpResponse objects for these input and output streams
 			HttpRequest req = m_hs.getRequest(br);
 			HttpResponse resp = m_hs.getResponse(req, ps);
-			
+
 			// process the HTTP request
 			req.process(resp);
 		} catch (Exception e) {
-			System.err.println("Server exception, skipping to next request " + e);		
+			e.printStackTrace();
+			System.err.println("Server exception, skipping to next request " + e);
 		} finally {
 			try {
 				m_soc.close();
 			} catch (Exception e) {
 				System.err.println("Error closing stream : " + e);
-			} 
+			}
 		}
 	}
 

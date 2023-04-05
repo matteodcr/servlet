@@ -26,7 +26,7 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
         this.headers = headers;
         this.ricmlet = ricmlet;
         List<String> decompose = Arrays.asList(ressname.split("\\?"));
-        if (decompose.size() == 2){
+        if (decompose.size() == 2) {
             String[] args = decompose.get(1).split("&");
             for (String s : args) {
                 List<String> arg = Arrays.asList(s.split("="));
@@ -71,7 +71,6 @@ public class HttpRicmletRequestImpl extends HttpRicmletRequest {
             }
             cookies = Collections.unmodifiableMap(cookies);
         }
-
         return cookies;
     }
 
